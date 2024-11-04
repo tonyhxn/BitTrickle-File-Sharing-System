@@ -1,5 +1,7 @@
 from socket import *
 import sys
+import threading
+import time
 
 # Client setup
 if len(sys.argv) != 2:
@@ -25,3 +27,14 @@ while True:
         break  # Exit loop on successful authentication
     else:
         print("Authentication failed. Please try again.")
+
+# 2.2. Heartbeat Mechanism
+def send_heartbeat():
+    while True:
+        heartbeat_message = f"HBT {username}"
+        client_socket.sendto(heartbeat_message.encode(), server_address)
+        time.sleep(2)
+
+# Start the heartbeat thread
+heartbeat_thread = threading.Thread(target=send_heartbeat)
+heartbeat_thread.start()
