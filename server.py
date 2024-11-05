@@ -61,20 +61,52 @@ def get_file(filename, user_requesting):
                     return client_address, username
     return ERROR, "File not found"
 
+# 2.3.2 lap
+def list_active_peers(user_requesting):
+    active_peers = [user for user in active_users if user != user_requesting]
+    if active_peers:
+        return OK, "Active peers: " + ", ".join(active_peers)
+    else:
+        return OK, "No active peers"
+
+# 2.3.3 lpf
+def list_published_files(user_requesting):
+    files = published_files.get(user_requesting, [])
+    if files:
+        return OK, f"{len(files)} File{'s' if len(files) > 1 else ''}:\n{'\n'.join(files)}"
+    else:
+        return OK, "No files published."
+
+# 2.3.4 pub <filename>
+def publish_file(username, filename):
+    if username not in published_files:
+        published_files[username] = set()
+
+    if filename not in published_files[username]:
+        published_files[username].add(filename)
+
+    log_message(f"{username} published file: {filename}")
+    return OK, f"File published successfully"
+
+
 # 2.3 Command handling
 def handle_command(command, username):
     log_message(f"Received {command.upper()} from {username}")
 
     # 2.3.1 get <filename>
     if command.startswith("get "):
-        filename = command.split('get ')[1]
+        filename = command.removeprefix("get ")
         return get_file(filename, username)
+    # 2.3.2 lap
     elif command == "lap":
-        return "Received LAP command"
+        return list_active_peers(username)
+    # 2.3.3 lpf
     elif command == "lpf":
-        return "Received LPF command"
+        return list_published_files(username)
+    # 2.3.4 pub <filename>
     elif command.startswith("pub "):
-        return "Received PUB command"
+        filename = command.removeprefix("get ")
+        return publish_file(username, filename)
     elif command.startswith("sch "):
         return "Received SCH command"
     elif command.startswith("unp "):
