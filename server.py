@@ -4,6 +4,9 @@ from datetime import datetime, timedelta
 import threading
 import time
 
+ERROR = False
+OK = True
+
 def log_message(message):
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
     print(f"{timestamp}: {message}")
@@ -56,8 +59,7 @@ def get_file(filename, user_requesting):
                 if u == username:
                     client_address = addr
                     return client_address, username
-
-    return "ERR: File not found"
+    return ERROR, "File not found"
 
 # 2.3 Command handling
 def handle_command(command, username):
@@ -120,7 +122,7 @@ while True:
         log_message(f"Received AUTH from {username}")
         response = authenticate(username, password, active_users, client_address)
         server_socket.sendto(response.encode(), client_address)
-        if response.startswith("ERR"):
+        if response.startswith("ERR: "):
             log_message(f"Sent ERR to {username}")
         elif response.startswith("OK"):
             log_message(f"Sent OK to {username}")
@@ -129,11 +131,11 @@ while True:
         # 2.3 Handle commands
         username = client_addresses.get(client_address)
         if username:
-            response = handle_command(message, username)
+            status, response = handle_command(message, username)
             server_socket.sendto(response.encode(), client_address)
-            if response.startswith("ERR: "):
+            if status == ERROR:
                 log_message(f"Sent ERR to {username}")
-            else:
+            elif status == OK:
                 log_message(f"Sent OK to {username}")
         else:
             log_message(f"Received command from unrecognized address: {client_address}")

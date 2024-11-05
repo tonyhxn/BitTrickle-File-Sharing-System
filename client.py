@@ -49,7 +49,7 @@ def handle_commands():
             break
         client_socket.sendto(command.encode(), server_address)
         response, _ = client_socket.recvfrom(1024)
-        print(response.decode("utf-8").split(": ")[1])
+        print(response.decode("utf-8"))
 
 # Start command handling loop
 handle_commands()
